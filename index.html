@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wochenplan – Praxis Dr. Rasche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ======== CI Variablen ======== */
+  :root {
+    --petrol: #025669;
+    --petrol-hell: #03758F;
+    --petrol-dunkel: #013D4B;
+    --kupfer: #BB4E26;
+    --kupfer-hell: #D4713F;
+    --kupfer-dunkel: #8E3A1B;
+    --text: #1C2833;
+    --text-hell: #566573;
+    --bg: #FAFBFC;
+    --warmweiss: #FDF8F5;
+    --border: #D5D8DC;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    font-size: 11pt;
+  }
+  h1, h2, h3 { font-family: 'Merriweather', Georgia, serif; color: var(--petrol); margin: 0; }
+
+  /* ======== Header ======== */
+  .header {
+    background: var(--petrol); color: white;
+    padding: 18px 28px; border-bottom: 4px solid var(--kupfer);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .header h1 { color: white; font-size: 22pt; }
+  .header .subtitle { font-family: Arial; font-size: 10pt; opacity: 0.85; margin-top: 4px; }
+  .header-meta { text-align: right; font-family: Arial; font-size: 10pt; }
+  .header-meta .kw { font-size: 14pt; font-weight: bold; }
+  .header-meta input.kw-input {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4);
+    color: white; padding: 4px 8px; border-radius: 4px;
+    font-size: 11pt; font-family: Arial; width: 200px; text-align: right;
+  }
+  .header-meta input.kw-input::placeholder { color: rgba(255,255,255,0.6); }
+
+  /* ======== Toolbar ======== */
+  .toolbar {
+    background: white; border-bottom: 1px solid var(--border);
+    padding: 12px 28px; display: flex; flex-wrap: wrap; gap: 10px;
+    align-items: center; justify-content: space-between;
+  }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tab {
+    padding: 8px 16px; border: 1px solid var(--border); background: white;
+    cursor: pointer; font-family: Arial; font-size: 11pt; font-weight: bold;
+    color: var(--text-hell); border-radius: 4px 4px 0 0; transition: all 0.15s;
+  }
+  .tab:hover { background: var(--warmweiss); color: var(--petrol); }
+  .tab.active { background: var(--petrol); color: white; border-color: var(--petrol); }
+  .tab.empfang { border-left: 3px solid var(--kupfer); }
+
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    padding: 8px 14px; border: 1px solid var(--petrol); background: white;
+    color: var(--petrol); cursor: pointer; font-family: Arial; font-size: 10pt;
+    font-weight: bold; border-radius: 4px; transition: all 0.15s;
+  }
+  .btn:hover { background: var(--petrol); color: white; }
+  .btn.primary { background: var(--petrol); color: white; }
+  .btn.primary:hover { background: var(--petrol-dunkel); }
+  .btn.danger { border-color: var(--kupfer); color: var(--kupfer); }
+  .btn.danger:hover { background: var(--kupfer); color: white; }
+  .btn.toggle.active { background: var(--kupfer); color: white; border-color: var(--kupfer); }
+
+  /* ======== Aufgaben-Legende ======== */
+  .legende-wrap {
+    background: var(--warmweiss); border-bottom: 1px solid var(--border); padding: 14px 28px;
+  }
+  .legende-title {
+    font-family: 'Merriweather', serif; font-size: 11pt; color: var(--petrol);
+    margin-bottom: 10px; font-weight: bold;
+  }
+  .legende-title .hint {
+    font-family: Arial; font-weight: normal; font-size: 9pt; color: var(--text-hell); margin-left: 10px;
+  }
+  .legende { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+  .pinsel-wrap {
+    position: relative; display: inline-flex; align-items: stretch;
+  }
+  .pinsel {
+    padding: 6px 12px; border: 2px solid transparent; border-radius: 4px;
+    cursor: pointer; font-size: 10pt; font-weight: bold;
+    transition: all 0.15s; user-select: none; white-space: nowrap;
+  }
+  .pinsel.active {
+    border-color: var(--petrol); box-shadow: 0 0 0 2px rgba(2,86,105,0.2); transform: scale(1.05);
+  }
+  .pinsel.eraser { background: white; color: var(--text-hell); border-color: var(--border); }
+  .pinsel.eraser.active { border-color: var(--kupfer); box-shadow: 0 0 0 2px rgba(187,78,38,0.2); }
+
+  .edit-icon {
+    display: none; position: absolute; top: -8px; right: -8px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--petrol); color: white; border: 2px solid white;
+    cursor: pointer; font-size: 11px; font-weight: bold;
+    align-items: center; justify-content: center; line-height: 1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .edit-icon:hover { background: var(--kupfer); }
+  body.editing .edit-icon { display: flex; }
+
+  .add-btn {
+    padding: 6px 12px; border: 2px dashed var(--petrol); background: white;
+    color: var(--petrol); cursor: pointer; font-size: 10pt; font-weight: bold;
+    border-radius: 4px; display: none;
+  }
+  .add-btn:hover { background: var(--petrol); color: white; }
+  body.editing .add-btn { display: inline-block; }
+
+  /* ======== Tabellen ======== */
+  .day-container { padding: 20px 28px 40px 28px; }
+  .day-section { display: none; }
+  .day-section.active { display: block; }
+  .day-section h2 {
+    font-size: 14pt; color: var(--petrol);
+    border-bottom: 2px solid var(--kupfer); padding-bottom: 6px; margin-bottom: 12px;
+  }
+
+  table.plan {
+    width: 100%; border-collapse: collapse; background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04); table-layout: fixed;
+  }
+  table.plan th {
+    background: var(--petrol); color: white; padding: 10px 8px;
+    font-family: 'Merriweather', serif; font-weight: bold; font-size: 11pt;
+    text-align: left; border: 1px solid var(--petrol-dunkel); position: relative;
+  }
+  table.plan th.zeit-col { width: 90px; text-align: center; }
+  table.plan th .person-name { display: inline-block; min-width: 50px; outline: none; }
+  body.editing table.plan th .person-name { background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 3px; cursor: text; }
+  body.editing table.plan th .person-name:focus { background: white; color: var(--text); }
+  .col-delete {
+    display: none; position: absolute; top: 4px; right: 4px;
+    background: var(--kupfer); color: white; border: none; border-radius: 50%;
+    width: 20px; height: 20px; cursor: pointer; font-size: 12px; font-weight: bold; line-height: 1;
+  }
+  body.editing .col-delete { display: inline-block; }
+  .col-add {
+    background: var(--petrol-hell); color: white; border: 2px dashed white;
+    cursor: pointer; font-size: 16px; font-weight: bold;
+  }
+
+  table.plan td {
+    border: 1px solid var(--border); padding: 0; height: 30px;
+    vertical-align: middle; font-size: 10pt; overflow: hidden;
+  }
+  table.plan td.zeit {
+    background: var(--warmweiss); color: var(--text-hell); font-weight: bold;
+    text-align: center; width: 90px; user-select: none;
+  }
+  table.plan tr:nth-child(even) td.zeit { background: #F5EFE9; }
+
+  .cell {
+    width: 100%; height: 100%; min-height: 30px; padding: 5px 8px;
+    cursor: pointer; transition: filter 0.1s;
+    display: flex; align-items: center; font-weight: 500;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .cell:hover { filter: brightness(0.95); outline: 2px solid var(--kupfer-hell); outline-offset: -2px; }
+  .cell.empty { color: transparent; }
+
+  /* ======== Empfangs-Übersicht ======== */
+  .empfang-section { display: none; }
+  .empfang-section.active { display: block; }
+  .empfang-section h2 {
+    font-size: 14pt; color: var(--petrol);
+    border-bottom: 2px solid var(--kupfer); padding-bottom: 6px; margin-bottom: 16px;
+  }
+  .empfang-controls {
+    margin-bottom: 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .empfang-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px;
+  }
+  .empfang-card {
+    background: white; border: 1px solid var(--border); border-radius: 6px;
+    overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .empfang-card-header {
+    padding: 10px 14px; font-family: 'Merriweather', serif;
+    font-weight: bold; font-size: 12pt; border-bottom: 2px solid;
+  }
+  .empfang-card-body { padding: 10px 14px; }
+  .empfang-row {
+    display: flex; gap: 10px; padding: 5px 0; font-size: 10pt;
+    border-bottom: 1px dashed var(--border);
+  }
+  .empfang-row:last-child { border-bottom: none; }
+  .empfang-row .person {
+    flex: 0 0 130px; font-weight: bold; color: var(--petrol);
+  }
+  .empfang-row .slots { flex: 1; color: var(--text); }
+  .empfang-row.empty .slots { color: var(--text-hell); font-style: italic; }
+  .empfang-empty-msg {
+    color: var(--text-hell); padding: 30px; text-align: center;
+    background: white; border: 1px dashed var(--border); border-radius: 6px;
+  }
+
+  /* ======== Modal ======== */
+  .modal-bg {
+    display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.5); z-index: 1000;
+    align-items: center; justify-content: center;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: white; border-radius: 8px; padding: 24px;
+    width: 100%; max-width: 460px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  .modal h3 { font-size: 14pt; margin-bottom: 16px; }
+  .modal .field { margin-bottom: 12px; }
+  .modal label { display: block; font-size: 10pt; font-weight: bold; color: var(--text-hell); margin-bottom: 4px; }
+  .modal input[type="text"] {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+    border-radius: 4px; font-family: Arial; font-size: 11pt;
+  }
+  .modal input[type="text"]:focus { outline: none; border-color: var(--petrol); }
+  .modal .color-row { display: flex; gap: 12px; align-items: center; }
+  .modal .color-row label { margin-bottom: 0; }
+  .modal input[type="color"] {
+    width: 50px; height: 36px; border: 1px solid var(--border);
+    border-radius: 4px; cursor: pointer; padding: 2px;
+  }
+  .modal .preview {
+    padding: 10px 14px; border-radius: 4px; font-weight: bold;
+    text-align: center; margin: 12px 0;
+  }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 20px; font-size: 9pt; color: var(--text-hell);
+    border-top: 1px solid var(--border); margin-top: 20px;
+  }
+
+  /* ======== Print-Styles ======== */
+  @media print {
+    @page { size: A4 landscape; margin: 12mm; }
+    body { background: white; font-size: 9pt; }
+    .toolbar, .legende-wrap .hint, .actions, .btn,
+    .edit-icon, .add-btn, .col-delete, .col-add, .empfang-controls { display: none !important; }
+    .header { padding: 10px 0; border-bottom: 3pt solid var(--kupfer); background: white !important; color: var(--petrol) !important; }
+    .header h1 { font-size: 16pt; color: var(--petrol) !important; }
+    .header h1, .header .subtitle, .header-meta { color: var(--petrol) !important; }
+    .legende-wrap { background: white; border: none; padding: 8px 0; }
+    .legende { gap: 4px; }
+    .pinsel { padding: 3px 8px; font-size: 8pt; cursor: default; }
+    .pinsel.active { box-shadow: none; transform: none; border-color: transparent; }
+    .pinsel.eraser { display: none; }
+    .day-section { display: block !important; page-break-after: always; padding: 0; }
+    .day-section:last-child { page-break-after: auto; }
+    .empfang-section.active { display: block !important; page-break-before: always; }
+    .empfang-section:not(.active) { display: none !important; }
+    .day-container { padding: 0; }
+    table.plan th { background: var(--petrol) !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .cell, .empfang-card-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .footer { display: none; }
+    .empfang-grid { grid-template-columns: repeat(2, 1fr); }
+    .empfang-card { break-inside: avoid; }
+  }
+  @media (max-width: 720px) {
+    .header { flex-direction: column; align-items: flex-start; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+    .day-container { padding: 12px; }
+    table.plan th, table.plan td { font-size: 9pt; }
+    .cell { padding: 3px 5px; }
+    .empfang-row { flex-direction: column; gap: 2px; }
+    .empfang-row .person { flex: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <h1>Wochenplan – Praxis Dr. Rasche</h1>
+    <div class="subtitle">Huttenstr. 6 · 97072 Würzburg · www.dr-rasche.de</div>
+  </div>
+  <div class="header-meta">
+    <div class="kw" id="kwLabel">KW –/–</div>
+    <div style="margin-top:6px;"><input class="kw-input" id="kwInput" placeholder="z.B. Woche 04.05.–08.05."></div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-day="mo">Montag</button>
+    <button class="tab" data-day="di">Dienstag</button>
+    <button class="tab" data-day="mi">Mittwoch</button>
+    <button class="tab" data-day="do">Donnerstag</button>
+    <button class="tab" data-day="fr">Freitag</button>
+    <button class="tab empfang" data-day="empfang">Übersicht Empfang</button>
+  </div>
+  <div class="actions">
+    <button class="btn toggle" id="editToggle" onclick="toggleEdit()">Bearbeiten</button>
+    <button class="btn" onclick="exportJSON()">Export</button>
+    <button class="btn" onclick="importJSON()">Import</button>
+    <button class="btn danger" onclick="resetAll()">Zurücksetzen</button>
+    <button class="btn primary" onclick="window.print()">Drucken</button>
+  </div>
+</div>
+
+<div class="legende-wrap">
+  <div class="legende-title">
+    Aufgaben-Legende
+    <span class="hint">Aufgabe anklicken → dann Zellen befüllen. Mit „Bearbeiten" Aufgaben/Spalten anpassen.</span>
+  </div>
+  <div class="legende" id="legende"></div>
+</div>
+
+<div class="day-container" id="dayContainer"></div>
+
+<div class="footer">
+  Dr. Florian Rasche · Huttenstr. 6 · 97072 Würzburg · www.dr-rasche.de<br>
+  Wochenplan – intern · Stand wird automatisch im Browser gespeichert
+</div>
+
+<!-- Modal: Aufgaben-Editor -->
+<div class="modal-bg" id="taskModalBg">
+  <div class="modal">
+    <h3 id="taskModalTitle">Aufgabe bearbeiten</h3>
+    <div class="field">
+      <label for="taskName">Bezeichnung</label>
+      <input type="text" id="taskName" placeholder="z.B. Reguläre Sprechstunde">
+    </div>
+    <div class="field color-row">
+      <div>
+        <label for="taskBg">Hintergrund</label>
+        <input type="color" id="taskBg" value="#D8E8EE">
+      </div>
+      <div>
+        <label for="taskFg">Schriftfarbe</label>
+        <input type="color" id="taskFg" value="#025669">
+      </div>
+      <button class="btn" type="button" onclick="autoTextColor()" style="margin-top:18px;">Kontrast auto</button>
+    </div>
+    <div class="preview" id="taskPreview">Vorschau</div>
+    <div class="modal-actions">
+      <button class="btn danger" id="taskDelete" onclick="deleteTask()">Löschen</button>
+      <button class="btn" onclick="closeTaskModal()">Abbrechen</button>
+      <button class="btn primary" onclick="saveTask()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====================================================================
+   Datenmodell + Persistenz
+   ==================================================================== */
+const STORAGE_KEY = 'wochenplan-praxis-v2';
+const LEGACY_PLAN_KEY = 'wochenplan-praxis-v1';
+const LEGACY_KW_KEY = 'wochenplan-praxis-kw-v1';
+const SCHEMA_VERSION = 2;
+
+const DEFAULT_TASKS = [
+  { key: 'infekt',     label: 'Infekt',                bg: '#FFE3E3', fg: '#C92A2A' },
+  { key: 'akut',       label: 'Akut',                  bg: '#FFE8CC', fg: '#D9480F' },
+  { key: 'regulaer',   label: 'Reguläre Sprechstunde', bg: '#D8E8EE', fg: '#025669' },
+  { key: 'hzv',        label: 'HZV-Sprechstunde',      bg: '#D3F0DC', fg: '#2B8A3E' },
+  { key: 'video',      label: 'Videosprechstunde',     bg: '#E5DBF4', fg: '#5F3DC4' },
+  { key: 'hausbesuche',label: 'Hausbesuche',           bg: '#F4E1D2', fg: '#8E3A1B' },
+  { key: 'telefonate', label: 'Telefonate',            bg: '#FFF3BF', fg: '#B8860B' },
+  { key: 'admin',      label: 'Administratives',       bg: '#E9ECEF', fg: '#495057' },
+  { key: 'impfungen',  label: 'Impfungen',             bg: '#C5F6FA', fg: '#0B7285' },
+  { key: 'wunde',      label: 'Wundversorgung',        bg: '#FCE4F1', fg: '#A61E4D' },
+  { key: 'chroniker',  label: 'Chroniker',             bg: '#D3F9D8', fg: '#2F9E44' },
+];
+const DEFAULT_PEOPLE = [
+  { key: 'rasche', label: 'Dr. Rasche' },
+  { key: 'will',   label: 'Dr. Will' },
+  { key: 'mfa',    label: 'MFAs' },
+  { key: 'gans',   label: 'H. Ganz-Kötzner (PCM)' },
+];
+const DAYS = [
+  { key: 'mo', label: 'Montag' },
+  { key: 'di', label: 'Dienstag' },
+  { key: 'mi', label: 'Mittwoch' },
+  { key: 'do', label: 'Donnerstag' },
+  { key: 'fr', label: 'Freitag' },
+];
+const TIMES = (() => {
+  const arr = []; for (let h = 8; h < 19; h++) { arr.push(pad(h)+':00'); arr.push(pad(h)+':30'); } return arr;
+})();
+function pad(n){ return n<10 ? '0'+n : ''+n; }
+function addMin(t, m) {
+  const [h,mn] = t.split(':').map(Number);
+  const total = h*60 + mn + m;
+  return pad(Math.floor(total/60)) + ':' + pad(total%60);
+}
+
+let state = {
+  schemaVersion: SCHEMA_VERSION,
+  kw: '',
+  tasks: DEFAULT_TASKS.slice(),
+  people: DEFAULT_PEOPLE.slice(),
+  plan: {},
+};
+
+let activePinsel = null; // task key | 'eraser' | null
+let editingTaskKey = null; // bei modal-edit
+let editMode = false;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const obj = JSON.parse(raw);
+      if (obj && obj.schemaVersion >= 2) {
+        state = Object.assign(state, obj);
+        // Stelle sicher, dass tasks/people gefüllt sind
+        if (!Array.isArray(state.tasks) || state.tasks.length === 0) state.tasks = DEFAULT_TASKS.slice();
+        if (!Array.isArray(state.people) || state.people.length === 0) state.people = DEFAULT_PEOPLE.slice();
+        return;
+      }
+    }
+    // Migration von v1
+    const oldPlan = localStorage.getItem(LEGACY_PLAN_KEY);
+    const oldKW = localStorage.getItem(LEGACY_KW_KEY);
+    if (oldPlan) {
+      try { state.plan = JSON.parse(oldPlan) || {}; } catch(e){}
+    }
+    if (oldKW) state.kw = oldKW;
+  } catch(e) {
+    console.warn('loadState fehlgeschlagen, nutze Defaults', e);
+  }
+}
+function saveState() {
+  state.schemaVersion = SCHEMA_VERSION;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e) { console.warn('saveState', e); }
+}
+
+function getTaskByKey(key) { return state.tasks.find(t => t.key === key); }
+
+/* ====================================================================
+   Helpers
+   ==================================================================== */
+function uid(prefix='id') { return prefix + '-' + Math.random().toString(36).slice(2, 9); }
+function cellKey(day, time, person) { return `${day}|${time}|${person}`; }
+function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* Kontrast-Auto: wählt schwarz/weiß je nach Helligkeit */
+function suggestTextColor(bgHex) {
+  const h = bgHex.replace('#','');
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  const lum = (0.299*r + 0.587*g + 0.114*b);
+  return lum > 160 ? '#1C2833' : '#FFFFFF';
+}
+
+/* ====================================================================
+   Aktuelle KW
+   ==================================================================== */
+function getKW(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return { kw: Math.ceil((((d - yearStart) / 86400000) + 1)/7), year: d.getUTCFullYear() };
+}
+function setKWLabel() {
+  const today = new Date();
+  let target = new Date(today);
+  if (target.getDay() === 0) target.setDate(target.getDate() + 1);
+  const {kw, year} = getKW(target);
+  document.getElementById('kwLabel').textContent = `KW ${kw}/${year}`;
+}
+
+/* ====================================================================
+   Edit-Modus toggle
+   ==================================================================== */
+function toggleEdit() {
+  editMode = !editMode;
+  document.body.classList.toggle('editing', editMode);
+  document.getElementById('editToggle').classList.toggle('active', editMode);
+  document.getElementById('editToggle').textContent = editMode ? 'Bearbeiten beenden' : 'Bearbeiten';
+}
+
+/* ====================================================================
+   Legende
+   ==================================================================== */
+function renderLegende() {
+  const wrap = document.getElementById('legende');
+  wrap.innerHTML = '';
+  state.tasks.forEach(t => {
+    const w = document.createElement('div');
+    w.className = 'pinsel-wrap';
+    const p = document.createElement('div');
+    p.className = 'pinsel' + (activePinsel === t.key ? ' active' : '');
+    p.textContent = t.label;
+    p.style.background = t.bg;
+    p.style.color = t.fg;
+    p.dataset.key = t.key;
+    p.onclick = () => setActivePinsel(t.key);
+    w.appendChild(p);
+    const e = document.createElement('button');
+    e.className = 'edit-icon';
+    e.title = 'Aufgabe bearbeiten';
+    e.textContent = '✎';
+    e.onclick = (ev) => { ev.stopPropagation(); openTaskModal(t.key); };
+    w.appendChild(e);
+    wrap.appendChild(w);
+  });
+
+  // Lösch-Pinsel
+  const eraser = document.createElement('div');
+  eraser.className = 'pinsel eraser' + (activePinsel === 'eraser' ? ' active' : '');
+  eraser.textContent = '✕ Löschen';
+  eraser.dataset.key = 'eraser';
+  eraser.onclick = () => setActivePinsel('eraser');
+  wrap.appendChild(eraser);
+
+  // + Neue Aufgabe
+  const add = document.createElement('button');
+  add.className = 'add-btn';
+  add.textContent = '+ Neue Aufgabe';
+  add.onclick = () => openTaskModal(null);
+  wrap.appendChild(add);
+}
+function setActivePinsel(key) {
+  activePinsel = key;
+  document.querySelectorAll('.pinsel').forEach(p =>
+    p.classList.toggle('active', p.dataset.key === key));
+}
+
+/* ====================================================================
+   Tabellen pro Tag
+   ==================================================================== */
+function renderDays() {
+  const container = document.getElementById('dayContainer');
+  container.innerHTML = '';
+  DAYS.forEach((day, idx) => {
+    const sec = document.createElement('section');
+    sec.className = 'day-section' + (idx === 0 ? ' active' : '');
+    sec.dataset.day = day.key;
+    sec.innerHTML = `<h2>${day.label}</h2>`;
+    const table = document.createElement('table');
+    table.className = 'plan';
+
+    const thead = document.createElement('thead');
+    const trh = document.createElement('tr');
+    trh.innerHTML = `<th class="zeit-col">Zeit</th>`;
+    state.people.forEach((p, i) => {
+      const th = document.createElement('th');
+      th.dataset.person = p.key;
+      const span = document.createElement('span');
+      span.className = 'person-name';
+      span.contentEditable = false;
+      span.textContent = p.label;
+      span.dataset.personKey = p.key;
+      span.addEventListener('focus', () => { span.contentEditable = true; });
+      span.addEventListener('blur', () => {
+        const newLabel = span.textContent.trim() || p.label;
+        if (newLabel !== p.label) {
+          const target = state.people.find(x => x.key === p.key);
+          if (target) { target.label = newLabel; saveState(); }
+          renderEmpfang();
+        }
+      });
+      // Im Bearbeiten-Modus: ans Klick aktiviert
+      span.addEventListener('click', () => {
+        if (editMode) { span.contentEditable = true; span.focus(); }
+      });
+      th.appendChild(span);
+
+      const del = document.createElement('button');
+      del.className = 'col-delete';
+      del.textContent = '×';
+      del.title = 'Spalte entfernen';
+      del.onclick = () => deletePerson(p.key);
+      th.appendChild(del);
+      trh.appendChild(th);
+    });
+    // + Spalte
+    const thAdd = document.createElement('th');
+    thAdd.className = 'col-add';
+    thAdd.textContent = '+';
+    thAdd.title = 'Spalte hinzufügen';
+    thAdd.style.cursor = 'pointer';
+    thAdd.style.display = editMode ? '' : 'none';
+    thAdd.classList.add('col-add-cell');
+    thAdd.onclick = () => addPerson();
+    trh.appendChild(thAdd);
+    thead.appendChild(trh);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    TIMES.forEach(time => {
+      const tr = document.createElement('tr');
+      const tdTime = document.createElement('td');
+      tdTime.className = 'zeit'; tdTime.textContent = time;
+      tr.appendChild(tdTime);
+      state.people.forEach(p => {
+        const td = document.createElement('td');
+        const cell = document.createElement('div');
+        cell.className = 'cell empty';
+        cell.dataset.day = day.key;
+        cell.dataset.time = time;
+        cell.dataset.person = p.key;
+        cell.onclick = () => onCellClick(cell);
+        applyTaskToCell(cell);
+        td.appendChild(cell);
+        tr.appendChild(td);
+      });
+      // Leer-Zelle für + Spalte (visuelle Ausrichtung)
+      const tdGap = document.createElement('td');
+      tdGap.style.border = 'none';
+      tdGap.style.background = 'transparent';
+      tdGap.style.display = editMode ? '' : 'none';
+      tdGap.classList.add('col-add-cell');
+      tr.appendChild(tdGap);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    sec.appendChild(table);
+    container.appendChild(sec);
+  });
+
+  // Empfangs-Sektion anhängen
+  const empfangSec = document.createElement('section');
+  empfangSec.className = 'empfang-section';
+  empfangSec.dataset.day = 'empfang';
+  empfangSec.innerHTML = `
+    <h2>Übersicht für den Empfang</h2>
+    <div class="empfang-controls">
+      <span style="font-size:10pt;color:var(--text-hell);">Gruppieren nach:</span>
+      <button class="btn primary" id="grpTask" onclick="setGrouping('task')">Terminart</button>
+      <button class="btn" id="grpPerson" onclick="setGrouping('person')">Person</button>
+      <span style="font-size:9pt;color:var(--text-hell);margin-left:auto;">Aufeinanderfolgende 30-Min-Slots werden automatisch zu Zeitfenstern zusammengefasst.</span>
+    </div>
+    <div id="empfangBody"></div>
+  `;
+  container.appendChild(empfangSec);
+  applyEditModeToCells();
+  renderEmpfang();
+}
+function applyEditModeToCells() {
+  document.querySelectorAll('.col-add-cell').forEach(el => {
+    el.style.display = editMode ? '' : 'none';
+  });
+}
+
+function applyTaskToCell(cell) {
+  const k = cellKey(cell.dataset.day, cell.dataset.time, cell.dataset.person);
+  const taskKey = state.plan[k];
+  cell.className = 'cell';
+  cell.style.background = ''; cell.style.color = '';
+  if (!taskKey) { cell.classList.add('empty'); cell.textContent = ''; return; }
+  const t = getTaskByKey(taskKey);
+  if (!t) { cell.classList.add('empty'); cell.textContent = ''; return; }
+  cell.style.background = t.bg;
+  cell.style.color = t.fg;
+  cell.textContent = t.label;
+}
+function onCellClick(cell) {
+  if (!activePinsel) {
+    alert('Bitte zuerst oben eine Aufgabe (oder „Löschen") anklicken.');
+    return;
+  }
+  const k = cellKey(cell.dataset.day, cell.dataset.time, cell.dataset.person);
+  if (activePinsel === 'eraser') delete state.plan[k];
+  else state.plan[k] = activePinsel;
+  applyTaskToCell(cell);
+  saveState();
+  renderEmpfang();
+}
+
+/* ====================================================================
+   Personen / Spalten verwalten
+   ==================================================================== */
+function addPerson() {
+  const label = prompt('Name der neuen Spalte (z.B. „MFA Anna"):', 'Neue Person');
+  if (!label) return;
+  state.people.push({ key: uid('p'), label: label.trim() });
+  saveState();
+  renderDays();
+}
+function deletePerson(personKey) {
+  const p = state.people.find(x => x.key === personKey);
+  if (!p) return;
+  if (!confirm(`Spalte „${p.label}" wirklich entfernen? Alle Eintragungen in dieser Spalte gehen verloren.`)) return;
+  state.people = state.people.filter(x => x.key !== personKey);
+  // Plan-Einträge dieser Person entfernen
+  Object.keys(state.plan).forEach(k => {
+    const parts = k.split('|');
+    if (parts[2] === personKey) delete state.plan[k];
+  });
+  saveState();
+  renderDays();
+}
+
+/* ====================================================================
+   Aufgaben verwalten – Modal
+   ==================================================================== */
+function openTaskModal(taskKey) {
+  editingTaskKey = taskKey;
+  const t = taskKey ? getTaskByKey(taskKey) : null;
+  document.getElementById('taskModalTitle').textContent = t ? 'Aufgabe bearbeiten' : 'Neue Aufgabe';
+  document.getElementById('taskName').value = t ? t.label : '';
+  document.getElementById('taskBg').value = t ? t.bg : '#D8E8EE';
+  document.getElementById('taskFg').value = t ? t.fg : '#025669';
+  document.getElementById('taskDelete').style.display = t ? '' : 'none';
+  updateTaskPreview();
+  document.getElementById('taskModalBg').classList.add('show');
+  setTimeout(() => document.getElementById('taskName').focus(), 50);
+}
+function closeTaskModal() {
+  document.getElementById('taskModalBg').classList.remove('show');
+  editingTaskKey = null;
+}
+function updateTaskPreview() {
+  const p = document.getElementById('taskPreview');
+  p.style.background = document.getElementById('taskBg').value;
+  p.style.color = document.getElementById('taskFg').value;
+  p.textContent = document.getElementById('taskName').value || 'Vorschau';
+}
+function autoTextColor() {
+  const bg = document.getElementById('taskBg').value;
+  document.getElementById('taskFg').value = suggestTextColor(bg);
+  updateTaskPreview();
+}
+function saveTask() {
+  const label = document.getElementById('taskName').value.trim();
+  const bg = document.getElementById('taskBg').value;
+  const fg = document.getElementById('taskFg').value;
+  if (!label) { alert('Bitte eine Bezeichnung eingeben.'); return; }
+  if (editingTaskKey) {
+    const t = getTaskByKey(editingTaskKey);
+    if (t) { t.label = label; t.bg = bg; t.fg = fg; }
+  } else {
+    state.tasks.push({ key: uid('t'), label, bg, fg });
+  }
+  saveState();
+  renderLegende();
+  // Alle Zellen neu zeichnen, falls Farbe/Name geändert
+  document.querySelectorAll('.cell').forEach(applyTaskToCell);
+  renderEmpfang();
+  closeTaskModal();
+}
+function deleteTask() {
+  if (!editingTaskKey) return;
+  const t = getTaskByKey(editingTaskKey);
+  if (!t) return;
+  if (!confirm(`Aufgabe „${t.label}" wirklich löschen? Alle Zellen mit dieser Aufgabe werden geleert.`)) return;
+  state.tasks = state.tasks.filter(x => x.key !== editingTaskKey);
+  Object.keys(state.plan).forEach(k => {
+    if (state.plan[k] === editingTaskKey) delete state.plan[k];
+  });
+  if (activePinsel === editingTaskKey) activePinsel = null;
+  saveState();
+  renderLegende();
+  document.querySelectorAll('.cell').forEach(applyTaskToCell);
+  renderEmpfang();
+  closeTaskModal();
+}
+['taskName','taskBg','taskFg'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateTaskPreview);
+});
+
+/* ====================================================================
+   Empfangs-Übersicht
+   ==================================================================== */
+let grouping = 'task'; // 'task' | 'person'
+function setGrouping(g) {
+  grouping = g;
+  document.getElementById('grpTask').classList.toggle('primary', g === 'task');
+  document.getElementById('grpPerson').classList.toggle('primary', g === 'person');
+  renderEmpfang();
+}
+
+/* Konsolidiere sortierte Times in Bereiche [start, end] */
+function consolidate(times) {
+  const sorted = times.slice().sort();
+  const ranges = [];
+  let start = null, end = null;
+  sorted.forEach(t => {
+    if (start === null) { start = t; end = addMin(t, 30); }
+    else if (t === end) { end = addMin(t, 30); }
+    else { ranges.push([start, end]); start = t; end = addMin(t, 30); }
+  });
+  if (start) ranges.push([start, end]);
+  return ranges;
+}
+function rangesToString(ranges) {
+  return ranges.map(([a,b]) => `${a}–${b}`).join(', ');
+}
+
+function buildIndex() {
+  // index[task][person][day] = [times]
+  const idx = {};
+  Object.keys(state.plan).forEach(k => {
+    const [day, time, person] = k.split('|');
+    const taskKey = state.plan[k];
+    if (!idx[taskKey]) idx[taskKey] = {};
+    if (!idx[taskKey][person]) idx[taskKey][person] = {};
+    if (!idx[taskKey][person][day]) idx[taskKey][person][day] = [];
+    idx[taskKey][person][day].push(time);
+  });
+  return idx;
+}
+
+function renderEmpfang() {
+  const body = document.getElementById('empfangBody');
+  if (!body) return;
+  const idx = buildIndex();
+  const hasAny = Object.keys(idx).length > 0;
+  if (!hasAny) {
+    body.innerHTML = '<div class="empfang-empty-msg">Noch keine Einträge im Wochenplan.<br>Trage Aufgaben in den Tagesansichten ein – die Übersicht erscheint dann automatisch hier.</div>';
+    return;
+  }
+  body.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'empfang-grid';
+
+  if (grouping === 'task') {
+    state.tasks.forEach(task => {
+      if (!idx[task.key]) return;
+      const card = document.createElement('div');
+      card.className = 'empfang-card';
+      const hdr = document.createElement('div');
+      hdr.className = 'empfang-card-header';
+      hdr.style.background = task.bg; hdr.style.color = task.fg; hdr.style.borderBottomColor = task.fg;
+      hdr.textContent = task.label;
+      card.appendChild(hdr);
+      const bodyEl = document.createElement('div');
+      bodyEl.className = 'empfang-card-body';
+      state.people.forEach(person => {
+        const personData = idx[task.key][person.key];
+        const row = document.createElement('div');
+        row.className = 'empfang-row' + (!personData ? ' empty' : '');
+        const personLabel = document.createElement('div');
+        personLabel.className = 'person'; personLabel.textContent = person.label;
+        row.appendChild(personLabel);
+        const slots = document.createElement('div');
+        slots.className = 'slots';
+        if (!personData) {
+          slots.textContent = '–';
+        } else {
+          const parts = DAYS.filter(d => personData[d.key])
+            .map(d => `${d.label.slice(0,2)} ${rangesToString(consolidate(personData[d.key]))}`);
+          slots.textContent = parts.join('  ·  ');
+        }
+        row.appendChild(slots);
+        bodyEl.appendChild(row);
+      });
+      card.appendChild(bodyEl);
+      grid.appendChild(card);
+    });
+  } else {
+    // Pro Person
+    state.people.forEach(person => {
+      const card = document.createElement('div');
+      card.className = 'empfang-card';
+      const hdr = document.createElement('div');
+      hdr.className = 'empfang-card-header';
+      hdr.style.background = 'var(--petrol)'; hdr.style.color = 'white'; hdr.style.borderBottomColor = 'var(--kupfer)';
+      hdr.textContent = person.label;
+      card.appendChild(hdr);
+      const bodyEl = document.createElement('div');
+      bodyEl.className = 'empfang-card-body';
+      // pro Tag eine Zeile, in der alle Aufgaben dieses Tages stehen
+      DAYS.forEach(day => {
+        const dayTimes = []; // [{time, taskKey}]
+        Object.keys(state.plan).forEach(k => {
+          const [d, t, p] = k.split('|');
+          if (d === day.key && p === person.key) dayTimes.push({time: t, taskKey: state.plan[k]});
+        });
+        const row = document.createElement('div');
+        row.className = 'empfang-row' + (dayTimes.length === 0 ? ' empty' : '');
+        const lbl = document.createElement('div');
+        lbl.className = 'person'; lbl.textContent = day.label;
+        row.appendChild(lbl);
+        const slots = document.createElement('div');
+        slots.className = 'slots';
+        if (dayTimes.length === 0) {
+          slots.textContent = '–';
+        } else {
+          // gruppiere nach taskKey + konsolidiere
+          const byTask = {};
+          dayTimes.forEach(({time, taskKey}) => {
+            if (!byTask[taskKey]) byTask[taskKey] = [];
+            byTask[taskKey].push(time);
+          });
+          const segs = [];
+          Object.keys(byTask).forEach(tk => {
+            const t = getTaskByKey(tk);
+            if (!t) return;
+            segs.push({task: t, ranges: consolidate(byTask[tk])});
+          });
+          slots.innerHTML = segs.map(s =>
+            `<span style="display:inline-block;padding:1px 6px;border-radius:3px;background:${s.task.bg};color:${s.task.fg};margin-right:6px;font-weight:bold;">${escapeHtml(s.task.label)}</span> ${rangesToString(s.ranges)}`
+          ).join(' &nbsp;·&nbsp; ');
+        }
+        row.appendChild(slots);
+        bodyEl.appendChild(row);
+      });
+      card.appendChild(bodyEl);
+      grid.appendChild(card);
+    });
+  }
+  body.appendChild(grid);
+}
+
+/* ====================================================================
+   Tabs / Buttons
+   ==================================================================== */
+document.getElementById('tabs').addEventListener('click', e => {
+  const t = e.target.closest('.tab');
+  if (!t) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+  document.querySelectorAll('.day-section, .empfang-section').forEach(s =>
+    s.classList.toggle('active', s.dataset.day === t.dataset.day));
+});
+
+function resetAll() {
+  if (!confirm('Wirklich den ganzen Wochenplan zurücksetzen?\n\nZelleneinträge werden gelöscht.\nAufgaben und Spalten werden auf die Standardwerte zurückgesetzt.')) return;
+  state = {
+    schemaVersion: SCHEMA_VERSION,
+    kw: '',
+    tasks: DEFAULT_TASKS.slice(),
+    people: DEFAULT_PEOPLE.slice(),
+    plan: {},
+  };
+  document.getElementById('kwInput').value = '';
+  saveState();
+  renderLegende();
+  renderDays();
+}
+function exportJSON() {
+  const data = JSON.parse(JSON.stringify(state));
+  data.exported = new Date().toISOString();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `wochenplan-${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+function importJSON() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data && typeof data === 'object') {
+          // Akzeptiere v1 (nur plan) und v2
+          if (data.schemaVersion >= 2) {
+            state = Object.assign({}, state, data);
+            if (!Array.isArray(state.tasks) || state.tasks.length === 0) state.tasks = DEFAULT_TASKS.slice();
+            if (!Array.isArray(state.people) || state.people.length === 0) state.people = DEFAULT_PEOPLE.slice();
+          } else if (data.plan) {
+            state.plan = data.plan;
+            if (data.kw) state.kw = data.kw;
+          }
+          saveState();
+          if (state.kw) document.getElementById('kwInput').value = state.kw;
+          renderLegende(); renderDays();
+          alert('Wochenplan importiert.');
+        }
+      } catch(err) { alert('Fehler beim Import: ' + err.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+/* KW-Eingabefeld */
+document.getElementById('kwInput').addEventListener('input', e => {
+  state.kw = e.target.value;
+  saveState();
+});
+
+/* Modal close on bg click */
+document.getElementById('taskModalBg').addEventListener('click', e => {
+  if (e.target.id === 'taskModalBg') closeTaskModal();
+});
+/* ESC schließt Modal */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('taskModalBg').classList.contains('show')) closeTaskModal();
+});
+
+/* ====================================================================
+   Init
+   ==================================================================== */
+loadState();
+if (state.kw) document.getElementById('kwInput').value = state.kw;
+renderLegende();
+renderDays();
+setKWLabel();
+</script>
+
+</body>
+</html>
