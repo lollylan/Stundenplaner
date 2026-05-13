@@ -79,6 +79,24 @@
   .btn.danger:hover { background: var(--kupfer); color: white; }
   .btn.toggle.active { background: var(--kupfer); color: white; border-color: var(--kupfer); }
 
+  /* Druck-Dropdown */
+  .print-dropdown { position: relative; display: inline-block; }
+  .print-menu {
+    display: none; position: absolute; right: 0; top: calc(100% + 4px);
+    background: white; border: 1px solid var(--border); border-radius: 4px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12); min-width: 230px; z-index: 50;
+    overflow: hidden;
+  }
+  .print-menu.open { display: block; }
+  .print-menu button {
+    display: block; width: 100%; text-align: left; padding: 10px 14px;
+    background: white; border: none; border-bottom: 1px solid var(--border);
+    color: var(--text); font-family: Arial; font-size: 10pt; font-weight: bold;
+    cursor: pointer;
+  }
+  .print-menu button:last-child { border-bottom: none; }
+  .print-menu button:hover { background: var(--warmweiss); color: var(--petrol); }
+
   /* ======== Aufgaben-Legende ======== */
   .legende-wrap {
     background: var(--warmweiss); border-bottom: 1px solid var(--border); padding: 14px 28px;
@@ -167,6 +185,7 @@
     text-align: center; width: 90px; user-select: none;
   }
   table.plan tr:nth-child(even) td.zeit { background: #F5EFE9; }
+  table.plan tbody tr:nth-child(even) .cell.empty { background: #F1F3F5; }
 
   .cell {
     width: 100%; height: 100%; min-height: 30px; padding: 5px 8px;
@@ -176,6 +195,24 @@
   }
   .cell:hover { filter: brightness(0.95); outline: 2px solid var(--kupfer-hell); outline-offset: -2px; }
   .cell.empty { color: transparent; }
+  .cell.multi {
+    padding: 0; gap: 1px; background: white;
+  }
+  .cell.multi .cell-seg {
+    flex: 1 1 0; min-width: 0; height: 100%;
+    padding: 5px 6px; display: flex; align-items: center;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-weight: 500; font-size: 9pt;
+  }
+  @keyframes cellFullShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+  }
+  .cell.full-flash {
+    animation: cellFullShake 0.25s ease-in-out;
+    outline: 2px solid var(--kupfer) !important; outline-offset: -2px;
+  }
 
   /* ======== Empfangs-Übersicht ======== */
   .empfang-section { display: none; }
@@ -256,7 +293,8 @@
     @page { size: A4 landscape; margin: 12mm; }
     body { background: white; font-size: 9pt; }
     .toolbar, .legende-wrap .hint, .actions, .btn,
-    .edit-icon, .add-btn, .col-delete, .col-add, .empfang-controls { display: none !important; }
+    .edit-icon, .add-btn, .col-delete, .col-add, .empfang-controls,
+    .print-dropdown, .print-menu { display: none !important; }
     .header { padding: 10px 0; border-bottom: 3pt solid var(--kupfer); background: white !important; color: var(--petrol) !important; }
     .header h1 { font-size: 16pt; color: var(--petrol) !important; }
     .header h1, .header .subtitle, .header-meta { color: var(--petrol) !important; }
@@ -265,16 +303,83 @@
     .pinsel { padding: 3px 8px; font-size: 8pt; cursor: default; }
     .pinsel.active { box-shadow: none; transform: none; border-color: transparent; }
     .pinsel.eraser { display: none; }
-    .day-section { display: block !important; page-break-after: always; padding: 0; }
-    .day-section:last-child { page-break-after: auto; }
-    .empfang-section.active { display: block !important; page-break-before: always; }
-    .empfang-section:not(.active) { display: none !important; }
     .day-container { padding: 0; }
     table.plan th { background: var(--petrol) !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .cell, .empfang-card-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .footer { display: none; }
     .empfang-grid { grid-template-columns: repeat(2, 1fr); }
     .empfang-card { break-inside: avoid; }
+
+    /* Default (kein Modus gesetzt, z.B. Ctrl+P): aktiver Tab wird gedruckt */
+    body:not(.print-landscape):not(.print-portrait):not(.print-empfang) .day-section.active,
+    body:not(.print-landscape):not(.print-portrait):not(.print-empfang) .empfang-section.active {
+      display: block !important;
+    }
+
+    /* Modus „Wochenplan – Querformat / Hochformat": alle 5 Tage drucken, je Tag eine Seite */
+    body.print-landscape .day-section,
+    body.print-portrait .day-section {
+      display: block !important; page-break-after: always;
+      page-break-inside: avoid; break-inside: avoid;
+      padding: 0;
+    }
+    body.print-landscape .day-section:last-of-type,
+    body.print-portrait .day-section:last-of-type { page-break-after: auto; }
+    body.print-landscape .empfang-section,
+    body.print-portrait .empfang-section { display: none !important; }
+
+    /* Tabelle/Zeilen nicht trennen */
+    body.print-landscape table.plan, body.print-portrait table.plan,
+    body.print-landscape table.plan tbody, body.print-portrait table.plan tbody {
+      page-break-inside: avoid; break-inside: avoid;
+    }
+    body.print-landscape table.plan tr, body.print-portrait table.plan tr {
+      page-break-inside: avoid; break-inside: avoid;
+    }
+
+    /* Kompakter Header + Legende, damit auf Seite 1 mit Tag 1 alles Platz hat */
+    body.print-landscape .header, body.print-portrait .header { padding: 4px 0 6px 0; }
+    body.print-landscape .header h1, body.print-portrait .header h1 { font-size: 13pt; }
+    body.print-landscape .header .subtitle, body.print-portrait .header .subtitle { font-size: 8pt; }
+    body.print-landscape .header-meta, body.print-portrait .header-meta { font-size: 8pt; }
+    body.print-landscape .header-meta .kw, body.print-portrait .header-meta .kw { font-size: 10pt; }
+    body.print-landscape .legende-wrap, body.print-portrait .legende-wrap { padding: 4px 0; }
+    body.print-landscape .legende-title, body.print-portrait .legende-title { font-size: 9pt; margin-bottom: 4px; }
+    body.print-landscape .pinsel, body.print-portrait .pinsel { padding: 2px 6px; font-size: 7.5pt; }
+    body.print-landscape .day-section h2, body.print-portrait .day-section h2 {
+      font-size: 11pt; padding-bottom: 3px; margin-bottom: 6px;
+    }
+
+    /* Zeilen-/Zellen-Höhe kleiner, damit 22 Slots sicher auf eine Seite passen */
+    body.print-landscape table.plan th, body.print-portrait table.plan th {
+      padding: 4px 4px; font-size: 9pt;
+    }
+    body.print-landscape table.plan td, body.print-portrait table.plan td {
+      height: auto; padding: 0;
+    }
+    body.print-landscape table.plan td.zeit, body.print-portrait table.plan td.zeit {
+      padding: 1px 2px; font-size: 8pt;
+    }
+    body.print-landscape .cell, body.print-portrait .cell {
+      padding: 2px 4px; min-height: 14px;
+    }
+    body.print-landscape .cell.multi .cell-seg, body.print-portrait .cell.multi .cell-seg {
+      padding: 2px 3px; min-height: 14px;
+    }
+
+    /* Hochformat zusätzlich enger, weil weniger Breite */
+    body.print-portrait { font-size: 8pt; }
+    body.print-portrait table.plan th { font-size: 8.5pt; padding: 3px 3px; }
+    body.print-portrait table.plan td.zeit { font-size: 7.5pt; }
+    body.print-portrait table.plan th.zeit-col,
+    body.print-portrait table.plan td.zeit { width: 56px; }
+    body.print-portrait .cell { padding: 2px 3px; font-size: 8pt; }
+    body.print-portrait .cell.multi .cell-seg { padding: 2px 3px; font-size: 7pt; }
+
+    /* Modus „Nur Empfang": Tagespläne aus, Empfangs-Übersicht an */
+    body.print-empfang .day-section { display: none !important; }
+    body.print-empfang .empfang-section { display: block !important; page-break-before: auto; }
+    body.print-empfang .legende-wrap { display: none !important; }
   }
   @media (max-width: 720px) {
     .header { flex-direction: column; align-items: flex-start; }
@@ -314,14 +419,21 @@
     <button class="btn" onclick="exportJSON()">Export</button>
     <button class="btn" onclick="importJSON()">Import</button>
     <button class="btn danger" onclick="resetAll()">Zurücksetzen</button>
-    <button class="btn primary" onclick="window.print()">Drucken</button>
+    <div class="print-dropdown">
+      <button class="btn primary" id="printBtn" onclick="togglePrintMenu(event)">Drucken ▾</button>
+      <div class="print-menu" id="printMenu">
+        <button type="button" onclick="printAs('landscape')">Wochenplan · Querformat</button>
+        <button type="button" onclick="printAs('portrait')">Wochenplan · Hochformat</button>
+        <button type="button" onclick="printAs('empfang')">Nur Empfangs-Übersicht</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <div class="legende-wrap">
   <div class="legende-title">
     Aufgaben-Legende
-    <span class="hint">Aufgabe anklicken → dann Zellen befüllen. Mit „Bearbeiten" Aufgaben/Spalten anpassen.</span>
+    <span class="hint">Aufgabe anklicken → dann Zellen befüllen. Pro Slot bis zu 3 parallele Aufgaben (gleiche Aufgabe erneut klicken = entfernen). Mit „Bearbeiten" Aufgaben/Spalten anpassen.</span>
   </div>
   <div class="legende" id="legende"></div>
 </div>
@@ -368,7 +480,8 @@
 const STORAGE_KEY = 'wochenplan-praxis-v2';
 const LEGACY_PLAN_KEY = 'wochenplan-praxis-v1';
 const LEGACY_KW_KEY = 'wochenplan-praxis-kw-v1';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
+const MAX_PARALLEL = 3;
 
 const DEFAULT_TASKS = [
   { key: 'infekt',     label: 'Infekt',                bg: '#FFE3E3', fg: '#C92A2A' },
@@ -428,6 +541,7 @@ function loadState() {
         // Stelle sicher, dass tasks/people gefüllt sind
         if (!Array.isArray(state.tasks) || state.tasks.length === 0) state.tasks = DEFAULT_TASKS.slice();
         if (!Array.isArray(state.people) || state.people.length === 0) state.people = DEFAULT_PEOPLE.slice();
+        normalizePlan();
         return;
       }
     }
@@ -438,9 +552,27 @@ function loadState() {
       try { state.plan = JSON.parse(oldPlan) || {}; } catch(e){}
     }
     if (oldKW) state.kw = oldKW;
+    normalizePlan();
   } catch(e) {
     console.warn('loadState fehlgeschlagen, nutze Defaults', e);
   }
+}
+/* Normalisiert Plan-Einträge: alles als Array (max. MAX_PARALLEL Einträge) */
+function normalizePlan() {
+  if (!state.plan || typeof state.plan !== 'object') { state.plan = {}; return; }
+  Object.keys(state.plan).forEach(k => {
+    const v = state.plan[k];
+    if (typeof v === 'string') {
+      if (v) state.plan[k] = [v]; else delete state.plan[k];
+    } else if (Array.isArray(v)) {
+      const cleaned = v.filter(x => typeof x === 'string' && x).slice(0, MAX_PARALLEL);
+      if (cleaned.length === 0) delete state.plan[k];
+      else state.plan[k] = cleaned;
+    } else {
+      delete state.plan[k];
+    }
+  });
+  sortAllPlanEntries();
 }
 function saveState() {
   state.schemaVersion = SCHEMA_VERSION;
@@ -449,6 +581,22 @@ function saveState() {
 }
 
 function getTaskByKey(key) { return state.tasks.find(t => t.key === key); }
+/* Sortiert ein Array von Task-Keys alphabetisch nach Aufgaben-Label (de). */
+function sortTaskKeys(arr) {
+  return arr.slice().sort((a, b) => {
+    const ta = getTaskByKey(a), tb = getTaskByKey(b);
+    const la = ta ? ta.label : a;
+    const lb = tb ? tb.label : b;
+    return la.localeCompare(lb, 'de', { sensitivity: 'base' });
+  });
+}
+/* Sortiert alle Plan-Slots in-place. */
+function sortAllPlanEntries() {
+  Object.keys(state.plan).forEach(k => {
+    const v = state.plan[k];
+    if (Array.isArray(v) && v.length > 1) state.plan[k] = sortTaskKeys(v);
+  });
+}
 
 /* ====================================================================
    Helpers
@@ -491,6 +639,7 @@ function toggleEdit() {
   document.body.classList.toggle('editing', editMode);
   document.getElementById('editToggle').classList.toggle('active', editMode);
   document.getElementById('editToggle').textContent = editMode ? 'Bearbeiten beenden' : 'Bearbeiten';
+  applyEditModeToCells();
 }
 
 /* ====================================================================
@@ -594,7 +743,7 @@ function renderDays() {
     thAdd.textContent = '+';
     thAdd.title = 'Spalte hinzufügen';
     thAdd.style.cursor = 'pointer';
-    thAdd.style.display = editMode ? '' : 'none';
+    thAdd.style.display = editMode ? 'table-cell' : 'none';
     thAdd.classList.add('col-add-cell');
     thAdd.onclick = () => addPerson();
     trh.appendChild(thAdd);
@@ -623,7 +772,7 @@ function renderDays() {
       const tdGap = document.createElement('td');
       tdGap.style.border = 'none';
       tdGap.style.background = 'transparent';
-      tdGap.style.display = editMode ? '' : 'none';
+      tdGap.style.display = editMode ? 'table-cell' : 'none';
       tdGap.classList.add('col-add-cell');
       tr.appendChild(tdGap);
       tbody.appendChild(tr);
@@ -653,21 +802,42 @@ function renderDays() {
 }
 function applyEditModeToCells() {
   document.querySelectorAll('.col-add-cell').forEach(el => {
-    el.style.display = editMode ? '' : 'none';
+    el.style.display = editMode ? 'table-cell' : 'none';
   });
 }
 
 function applyTaskToCell(cell) {
   const k = cellKey(cell.dataset.day, cell.dataset.time, cell.dataset.person);
-  const taskKey = state.plan[k];
+  const entry = state.plan[k];
+  const arr = Array.isArray(entry) ? entry : (entry ? [entry] : []);
   cell.className = 'cell';
   cell.style.background = ''; cell.style.color = '';
-  if (!taskKey) { cell.classList.add('empty'); cell.textContent = ''; return; }
-  const t = getTaskByKey(taskKey);
-  if (!t) { cell.classList.add('empty'); cell.textContent = ''; return; }
-  cell.style.background = t.bg;
-  cell.style.color = t.fg;
-  cell.textContent = t.label;
+  cell.textContent = '';
+  while (cell.firstChild) cell.removeChild(cell.firstChild);
+
+  const tasks = arr.map(getTaskByKey).filter(Boolean);
+  if (tasks.length === 0) { cell.classList.add('empty'); return; }
+
+  if (tasks.length === 1) {
+    const t = tasks[0];
+    cell.style.background = t.bg;
+    cell.style.color = t.fg;
+    cell.textContent = t.label;
+    cell.title = t.label;
+    return;
+  }
+
+  cell.classList.add('multi');
+  cell.title = tasks.map(t => t.label).join(' · ');
+  tasks.forEach(t => {
+    const seg = document.createElement('div');
+    seg.className = 'cell-seg';
+    seg.style.background = t.bg;
+    seg.style.color = t.fg;
+    seg.textContent = t.label;
+    seg.title = t.label;
+    cell.appendChild(seg);
+  });
 }
 function onCellClick(cell) {
   if (!activePinsel) {
@@ -675,8 +845,30 @@ function onCellClick(cell) {
     return;
   }
   const k = cellKey(cell.dataset.day, cell.dataset.time, cell.dataset.person);
-  if (activePinsel === 'eraser') delete state.plan[k];
-  else state.plan[k] = activePinsel;
+  const current = state.plan[k];
+  const arr = Array.isArray(current) ? current.slice() : (current ? [current] : []);
+
+  if (activePinsel === 'eraser') {
+    delete state.plan[k];
+  } else {
+    const idx = arr.indexOf(activePinsel);
+    if (idx >= 0) {
+      // Aufgabe ist bereits in der Zelle → entfernen (Toggle)
+      arr.splice(idx, 1);
+      if (arr.length === 0) delete state.plan[k];
+      else state.plan[k] = arr;
+    } else if (arr.length < MAX_PARALLEL) {
+      arr.push(activePinsel);
+      state.plan[k] = sortTaskKeys(arr);
+    } else {
+      // Zelle bereits voll – visuelles Feedback, kein Update
+      cell.classList.remove('full-flash');
+      void cell.offsetWidth; // reflow, damit Animation neu startet
+      cell.classList.add('full-flash');
+      setTimeout(() => cell.classList.remove('full-flash'), 260);
+      return;
+    }
+  }
   applyTaskToCell(cell);
   saveState();
   renderEmpfang();
@@ -747,6 +939,7 @@ function saveTask() {
   } else {
     state.tasks.push({ key: uid('t'), label, bg, fg });
   }
+  sortAllPlanEntries();
   saveState();
   renderLegende();
   // Alle Zellen neu zeichnen, falls Farbe/Name geändert
@@ -761,7 +954,14 @@ function deleteTask() {
   if (!confirm(`Aufgabe „${t.label}" wirklich löschen? Alle Zellen mit dieser Aufgabe werden geleert.`)) return;
   state.tasks = state.tasks.filter(x => x.key !== editingTaskKey);
   Object.keys(state.plan).forEach(k => {
-    if (state.plan[k] === editingTaskKey) delete state.plan[k];
+    const entry = state.plan[k];
+    if (Array.isArray(entry)) {
+      const filtered = entry.filter(x => x !== editingTaskKey);
+      if (filtered.length === 0) delete state.plan[k];
+      else state.plan[k] = filtered;
+    } else if (entry === editingTaskKey) {
+      delete state.plan[k];
+    }
   });
   if (activePinsel === editingTaskKey) activePinsel = null;
   saveState();
@@ -807,11 +1007,14 @@ function buildIndex() {
   const idx = {};
   Object.keys(state.plan).forEach(k => {
     const [day, time, person] = k.split('|');
-    const taskKey = state.plan[k];
-    if (!idx[taskKey]) idx[taskKey] = {};
-    if (!idx[taskKey][person]) idx[taskKey][person] = {};
-    if (!idx[taskKey][person][day]) idx[taskKey][person][day] = [];
-    idx[taskKey][person][day].push(time);
+    const entry = state.plan[k];
+    const taskKeys = Array.isArray(entry) ? entry : (entry ? [entry] : []);
+    taskKeys.forEach(taskKey => {
+      if (!idx[taskKey]) idx[taskKey] = {};
+      if (!idx[taskKey][person]) idx[taskKey][person] = {};
+      if (!idx[taskKey][person][day]) idx[taskKey][person][day] = [];
+      idx[taskKey][person][day].push(time);
+    });
   });
   return idx;
 }
@@ -880,7 +1083,11 @@ function renderEmpfang() {
         const dayTimes = []; // [{time, taskKey}]
         Object.keys(state.plan).forEach(k => {
           const [d, t, p] = k.split('|');
-          if (d === day.key && p === person.key) dayTimes.push({time: t, taskKey: state.plan[k]});
+          if (d === day.key && p === person.key) {
+            const entry = state.plan[k];
+            const taskKeys = Array.isArray(entry) ? entry : (entry ? [entry] : []);
+            taskKeys.forEach(tk => dayTimes.push({time: t, taskKey: tk}));
+          }
         });
         const row = document.createElement('div');
         row.className = 'empfang-row' + (dayTimes.length === 0 ? ' empty' : '');
@@ -943,6 +1150,43 @@ function resetAll() {
   renderLegende();
   renderDays();
 }
+function togglePrintMenu(ev) {
+  if (ev) ev.stopPropagation();
+  document.getElementById('printMenu').classList.toggle('open');
+}
+function closePrintMenu() {
+  document.getElementById('printMenu').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.print-dropdown')) closePrintMenu();
+});
+
+function printAs(mode) {
+  closePrintMenu();
+  const modes = ['landscape', 'portrait', 'empfang'];
+  modes.forEach(m => document.body.classList.remove('print-' + m));
+  document.body.classList.add('print-' + mode);
+
+  // @page-Regel dynamisch injizieren (Selektor-basierte @page-Regeln gibt es nicht)
+  const existing = document.getElementById('print-page-style');
+  if (existing) existing.remove();
+  const style = document.createElement('style');
+  style.id = 'print-page-style';
+  const size = mode === 'landscape' ? 'A4 landscape' : 'A4 portrait';
+  style.textContent = `@media print { @page { size: ${size}; margin: 12mm; } }`;
+  document.head.appendChild(style);
+
+  const cleanup = () => {
+    modes.forEach(m => document.body.classList.remove('print-' + m));
+    const s = document.getElementById('print-page-style');
+    if (s) s.remove();
+    window.removeEventListener('afterprint', cleanup);
+  };
+  window.addEventListener('afterprint', cleanup);
+
+  setTimeout(() => window.print(), 50);
+}
+
 function exportJSON() {
   const data = JSON.parse(JSON.stringify(state));
   data.exported = new Date().toISOString();
@@ -971,6 +1215,7 @@ function importJSON() {
             state.plan = data.plan;
             if (data.kw) state.kw = data.kw;
           }
+          normalizePlan();
           saveState();
           if (state.kw) document.getElementById('kwInput').value = state.kw;
           renderLegende(); renderDays();
